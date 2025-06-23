@@ -1,0 +1,65 @@
+# .github/workflows/build.yml
+name: Build Minecraft Capture
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ created ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        architecture: [x64, x86]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Setup Visual Studio environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.architecture }}
+        
+    - name: Create build directory
+      run: mkdir build
+      
+    - name: Compile application
+      run: |
+        cl /EHsc /O2 /MT SimpleMinecraftCapture.cpp gdiplus.lib ws2_32.lib /Fe:build/MinecraftCapture-${{ matrix.architecture }}.exe
+        
+    - name: Verify build
+      run: |
+        if (Test-Path "build/MinecraftCapture-${{ matrix.architecture }}.exe") {
+          Write-Host "Build successful for ${{ matrix.architecture }}"
+          Get-ChildItem build/MinecraftCapture-${{ matrix.architecture }}.exe | Select-Object Name, Length, LastWriteTime
+        } else {
+          Write-Error "Build failed for ${{ matrix.architecture }}"
+          exit 1
+        }
+      shell: powershell
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: minecraft-capture-${{ matrix.architecture }}
+        path: build/MinecraftCapture-${{ matrix.architecture }}.exe
+        
+    - name: Upload to release (if release)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: build/MinecraftCapture-${{ matrix.architecture }}.exe
+        asset_name: MinecraftCapture-${{ matrix.architecture }}.exe
+        asset_content_type: application/octet-stream
