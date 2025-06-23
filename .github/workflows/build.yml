@@ -34,7 +34,7 @@ jobs:
       
     - name: Compile application
       run: |
-        cl /EHsc /O2 /MT SimpleMinecraftCapture.cpp gdiplus.lib ws2_32.lib /Fe:build/MinecraftCapture-${{ matrix.architecture }}.exe
+        cl /EHsc /O2 /MT /DWIN32_LEAN_AND_MEAN src/SimpleMinecraftCapture.cpp gdiplus.lib ws2_32.lib /Fe:build/MinecraftCapture-${{ matrix.architecture }}.exe
         
     - name: Verify build
       run: |
