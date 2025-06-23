@@ -143,8 +143,7 @@ jobs:
                 WSACleanup();
                 GdiplusShutdown(gdiplusToken);
             }
-        private:
-            std::vector<BYTE> m_latestFrame;
+            }
             
             // 进程监控循环
             void ProcessMonitorLoop() {
@@ -230,6 +229,7 @@ jobs:
                 CloseHandle(hSnapshot);
                 return pids;
             }
+            
             HWND FindMinecraftWindow() {
                 HWND hwnd = NULL;
                 
