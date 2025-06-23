@@ -152,11 +152,13 @@ jobs:
                 while (m_running) {
                     std::vector<DWORD> minecraftPIDs = FindAllMinecraftProcesses();
                     
-                    auto now = std::chrono::system_clock::now();
-                    auto time_t = std::chrono::system_clock::to_time_t(now);
-                    auto tm = *std::localtime(&time_t);
+                    // 获取当前时间
+                    time_t rawtime;
+                    struct tm * timeinfo;
+                    time(&rawtime);
+                    timeinfo = localtime(&rawtime);
                     
-                    printf("[%02d:%02d:%02d] ", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                    printf("[%02d:%02d:%02d] ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
                     
                     if (minecraftPIDs.empty()) {
                         printf("No Minecraft processes found\n");
