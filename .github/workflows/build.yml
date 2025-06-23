@@ -40,6 +40,7 @@ jobs:
         #endif
 
         #include <windows.h>
+        #include <objbase.h>
         #include <gdiplus.h>
 
         #ifndef _WINSOCKAPI_
@@ -52,10 +53,11 @@ jobs:
         #include <thread>
         #include <vector>
         #include <string>
-        #include <atomic>
+        #include <algorithm>
 
         #pragma comment(lib, "gdiplus.lib")
         #pragma comment(lib, "ws2_32.lib")
+        #pragma comment(lib, "ole32.lib")
 
         using namespace Gdiplus;
 
@@ -63,11 +65,12 @@ jobs:
         private:
             HWND m_minecraftWindow;
             SOCKET m_serverSocket;
-            std::atomic<bool> m_running{false};
+            volatile bool m_running;
             GdiplusStartupInput gdiplusStartupInput;
             ULONG_PTR gdiplusToken;
 
         public:
+            SimpleMinecraftCapture() : m_minecraftWindow(NULL), m_serverSocket(INVALID_SOCKET), m_running(false) {}
             bool Initialize() {
                 if (GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) != Ok) {
                     printf("GDI+ initialization failed\n");
@@ -135,6 +138,7 @@ jobs:
             }
 
         private:
+            std::vector<BYTE> m_latestFrame;
             HWND FindMinecraftWindow() {
                 HWND hwnd = NULL;
                 
@@ -189,8 +193,6 @@ jobs:
                 }
                 printf("Capture loop ended\n");
             }
-            
-            std::vector<BYTE> m_latestFrame;
             
             void CaptureFrame() {
                 if (!IsWindow(m_minecraftWindow)) {
@@ -414,7 +416,7 @@ jobs:
         
     - name: Compile application
       run: |
-        cl /EHsc /O2 /MT /DWIN32_LEAN_AND_MEAN SimpleMinecraftCapture.cpp gdiplus.lib ws2_32.lib /Fe:build/MinecraftCapture-${{ matrix.architecture }}.exe
+        cl /EHsc /O2 /MT /DWIN32_LEAN_AND_MEAN SimpleMinecraftCapture.cpp gdiplus.lib ws2_32.lib ole32.lib /Fe:build/MinecraftCapture-${{ matrix.architecture }}.exe
         
     - name: Verify build
       run: |
