@@ -437,11 +437,8 @@ jobs:
         
     - name: Upload to release (if release)
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/MinecraftCapture-${{ matrix.architecture }}.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: build/MinecraftCapture-${{ matrix.architecture }}.exe
-        asset_name: MinecraftCapture-${{ matrix.architecture }}.exe
-        asset_content_type: application/octet-stream
